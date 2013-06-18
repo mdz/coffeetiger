@@ -73,73 +73,8 @@ GPIO.setup(SPICS, GPIO.OUT)
 potentiometer_adc = 0;
  
 last_read = 0 # this keeps track of the last potentiometer value
-tolerance = 5 # to keep from being jittery we'll only change
+tolerance = 0 # to keep from being jittery we'll only change
 # volume when the pot has moved more than 5 'counts'
-
-# create logger
-lgr = logging.getLogger('readings')
-
-# add a file handler
-fh = logging.FileHandler('readings.txt')
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh.setFormatter(formatter)
-
-# add the Handler to the logger
-lgr.addHandler(fh)
-
-lgr.setLevel(logging.INFO)
-lgr.info("Logging initialized")
- 
-while True:
-  # we'll assume that the pot didn't move
-  trim_pot_changed = False
- 
-  # read the analog pin
-  trim_pot = readadc(potentiometer_adc, SPICLK, SPIMOSI, SPIMISO, SPICS)
-  # how much has it changed since the last read?
-  pot_adjust = abs(trim_pot - last_read)
- 
-  if DEBUG:
-    print "trim_pot:", trim_pot
-    print "pot_adjust:", pot_adjust
-    print "last_read", last_read
- 
-  if ( pot_adjust > tolerance ):
-    trim_pot_changed = True
- 
-  if DEBUG:
-    print "trim_pot_changed", trim_pot_changed
- 
-  if ( trim_pot_changed ):
-    # log the current value
-    pass
- 
-  # save the potentiometer reading for the next loop
-  last_read = trim_pot
-  # hang out and do nothing for a half second
-  time.sleep(0.5)
-  
-"""
-Create log and output voltage reading, as if it was an INFO message
-
-http://www.shutupandship.com/2012/02/how-python-logging-module-works.html
-http://www.blog.pythonlibrary.org/2012/08/02/python-101-an-intro-to-logging/
-http://docs.python.org/2/howto/logging.html
-"""
-
-# You can now start issuing logging statements in your code
-lgr.debug('debug message')
-lgr.info('Volume = {volume}%')
-lgr.warn('Checkout this warning.')
-lgr.error('An error goes here.')
-lgr.critical('Something critical happened.')
-
-
-"""
-Rotate the logs
-
-http://stackoverflow.com/questions/8467978/python-want-logging-with-log-rotation-and-compression
-"""
 
 class SizedTimedRotatingFileHandler(handlers.TimedRotatingFileHandler):
     """
@@ -179,18 +114,53 @@ class SizedTimedRotatingFileHandler(handlers.TimedRotatingFileHandler):
             return 1
         return 0
 
-def demo_SizedTimedRotatingFileHandler():
-    log_filename='/tmp/log_rotate'
-    logger=logging.getLogger('MyLogger')
-    logger.setLevel(logging.DEBUG)
-    handler=SizedTimedRotatingFileHandler(
-        log_filename, maxBytes=100, backupCount=5,
-        when='s',interval=10,
-        # encoding='bz2',  # uncomment for bz2 compression
-        )
-    logger.addHandler(handler)
-    for i in range(10000):
-        time.sleep(0.1)
-        logger.debug('i=%d' % i)
+# create logger
+lgr = logging.getLogger('readings')
 
-demo_SizedTimedRotatingFileHandler()
+handler=SizedTimedRotatingFileHandler(
+    'readings.txt', maxBytes=100, backupCount=5,
+    when='s',interval=10,
+    )
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+
+# add the Handler to the logger
+lgr.addHandler(handler)
+
+lgr.setLevel(logging.INFO)
+lgr.info("Logging initialized")
+ 
+while True:
+  # we'll assume that the pot didn't move
+  trim_pot_changed = False
+ 
+  # read the analog pin
+  trim_pot = readadc(potentiometer_adc, SPICLK, SPIMOSI, SPIMISO, SPICS)
+  # how much has it changed since the last read?
+  pot_adjust = abs(trim_pot - last_read)
+ 
+  if DEBUG:
+    print "trim_pot:", trim_pot
+    print "pot_adjust:", pot_adjust
+    print "last_read", last_read
+ 
+  if ( pot_adjust > tolerance ):
+    trim_pot_changed = True
+ 
+  if DEBUG:
+    print "trim_pot_changed", trim_pot_changed
+ 
+  if ( trim_pot_changed ):
+    # log the current value
+    lgr.info("The value is %d" % trim_pot)
+ 
+  # save the potentiometer reading for the next loop
+  last_read = trim_pot
+  # hang out and do nothing for a half second
+  time.sleep(0.5)
+  
+"""
+Rotate the logs
+
+http://stackoverflow.com/questions/8467978/python-want-logging-with-log-rotation-and-compression
+"""

@@ -18,14 +18,23 @@ def setmode(something):
 def setup(something1, something2, pull_up_down = 0):
     pass
 
-def input(something):
-    return LOW
-
-def output(pinName, value):
-    if value == HIGH:
-        print("{}: On".format(pinName))
+last_value = {}
+def input(pin):
+    if pin in last_value:
+      last_value[pin] += 1
     else:
-        print("{}: Off".format(pinName))
+      last_value[pin] = 0
+
+    value = last_value[pin]
+
+    print("GPIO input: {} = {}".format(pin, value))
+    return value
+
+def output(pin, value):
+    if value == HIGH:
+        print("GPIO output: {} = On".format(pin))
+    else:
+        print("GPIO output: {} = Off".format(pin))
 
 def cleanup():
     pass
