@@ -2,8 +2,6 @@
 import time
 import os
 import RPi.GPIO as GPIO
-import re
-import stat
 import logging
 import logging.handlers as handlers
 import otherMod2
@@ -22,15 +20,16 @@ DEBUG = 1
 def readadc(adcnum, clockpin, mosipin, misopin, cspin):
   if ((adcnum > 7) or (adcnum < 0)):
 		return -1
-	GPIO.output(cspin, True)
+
+  GPIO.output(cspin, True)
  
-	GPIO.output(clockpin, False) # start clock low
-	GPIO.output(cspin, False) # bring CS low
+  GPIO.output(clockpin, False) # start clock low
+  GPIO.output(cspin, False) # bring CS low
  
-	commandout = adcnum
-	commandout |= 0x18 # start bit + single-ended bit
-	commandout <<= 3 # we only need to send 5 bits here
-	for i in range(5):
+  commandout = adcnum
+  commandout |= 0x18 # start bit + single-ended bit
+  commandout <<= 3 # we only need to send 5 bits here
+  for i in range(5):
 		if (commandout & 0x80):
 			GPIO.output(mosipin, True)
 		else:
@@ -39,18 +38,18 @@ def readadc(adcnum, clockpin, mosipin, misopin, cspin):
 		GPIO.output(clockpin, True)
 		GPIO.output(clockpin, False)
  
-	adcout = 0
+  adcout = 0
 	# read in one empty bit, one null bit and 10 ADC bits
-	for i in range(12):
+  for i in range(12):
 		GPIO.output(clockpin, True)
 		GPIO.output(clockpin, False)
 		adcout <<= 1
 		if (GPIO.input(misopin)):
 			adcout |= 0x1
  
-	GPIO.output(cspin, True)
-	adcout >>= 1 # first bit is 'null' so drop it
-	return adcout
+  GPIO.output(cspin, True)
+  adcout >>= 1 # first bit is 'null' so drop it
+  return adcout
  
 # change these as desired - they're the pins connected from the
 # SPI port on the ADC to the Cobbler
@@ -125,17 +124,14 @@ lgr = logging.getLogger('readings')
 # add a file handler
 fh = logging.FileHandler('~/coffeetiger/readings.txt')
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
+fh.setFormatter(formatter)
 
 # add the Handler to the logger
 lgr.addHandler(fh)
 
-    logger.info("Program started")
-    result = otherMod2.add(7, 8)
-    logger.info("Done!")
-    
-if __name__ == "__main__":
-    main()
+lgr.info("Program started")
+result = otherMod2.add(7, 8)
+lgr.info("Done!")
 
 # You can now start issuing logging statements in your code
 lgr.debug('debug message')
@@ -143,7 +139,6 @@ lgr.info('Volume = {volume}%')
 lgr.warn('Checkout this warning.')
 lgr.error('An error goes here.')
 lgr.critical('Something critical happened.')
- 
 
 
 """
