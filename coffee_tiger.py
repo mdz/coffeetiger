@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 import time
 import os
-import RPi.GPIO as GPIO
+
+try:
+  import RPi.GPIO as GPIO
+except RuntimeError:
+  print "Couldn't load RPi.GPIO, using mock instead"
+  import GPIOmock as GPIO
+
 import logging
 import logging.handlers as handlers
-import otherMod2
 
 """
 Thank you, Adafruit
